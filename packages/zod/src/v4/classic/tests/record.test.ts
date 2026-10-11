@@ -364,6 +364,33 @@ test("surfaces key schema refinement failures as invalid_key", () => {
   `);
 });
 
+test("record validates an own __proto__ key before dropping it", () => {
+  const locale = z.string().refine((value) => ["fr", "de"].includes(value));
+  const schema = z.record(locale, z.string());
+  const input = JSON.parse('{"__proto__":"x","fr":"y"}');
+
+  const result = schema.safeParse(input);
+  expect(result.success).toBe(false);
+  if (!result.success) {
+    expect(result.error.issues).toMatchObject([
+      {
+        code: "invalid_key",
+        path: ["__proto__"],
+      },
+    ]);
+  }
+});
+
+test("looseRecord never assigns an invalid __proto__ key to its output", () => {
+  const schema = z.looseRecord(z.string().refine((key) => key !== "__proto__"), z.unknown());
+  const input = JSON.parse('{"__proto__":{"isAdmin":true},"safe":"ok"}');
+  const parsed: any = schema.parse(input);
+
+  expect(Object.keys(parsed)).toEqual(["safe"]);
+  expect(Object.getPrototypeOf(parsed)).toBe(Object.prototype);
+  expect(parsed.isAdmin).toBeUndefined();
+});
+
 test("string record parse - pass", () => {
   const schema = z.record(z.string(), z.boolean());
   schema.parse({
