@@ -3399,7 +3399,7 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
           continue;
         }
 
-        // the guard above tests the raw input key, but the key schema can normalize an ordinary key into __proto__; re-check the key we actually write under
+        // Never write under __proto__, even when the key schema accepts or normalizes to it.
         const outKey = keyResult.value as PropertyKey;
         if (outKey === "__proto__") continue;
 
