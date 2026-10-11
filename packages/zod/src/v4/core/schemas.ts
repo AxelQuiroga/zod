@@ -3360,7 +3360,6 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
       let unrecognized!: string[];
       // Reflect.ownKeys for Symbol-key support; filter non-enumerable to match z.object()
       for (const key of Reflect.ownKeys(input)) {
-        if (key === "__proto__") continue;
         if (!Object.prototype.propertyIsEnumerable.call(input, key)) continue;
         let keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
         if (keyResult instanceof Promise) {
@@ -3381,8 +3380,8 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
 
         if (keyResult.issues.length) {
           if (def.mode === "loose") {
-            // Pass through unchanged
-            payload.value[key] = input[key];
+            // Pass through unchanged, except __proto__ must never be assigned to the output.
+            if (key !== "__proto__") payload.value[key] = input[key];
           } else if (values) {
             unrecognized = unrecognized ?? [];
             unrecognized.push(key as string);
